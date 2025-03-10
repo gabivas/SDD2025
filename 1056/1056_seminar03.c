@@ -5,6 +5,7 @@
 #include<stdlib.h>
 
 typedef struct Shaorma Shaorma;
+typedef struct Nod Nod;
 
 struct Shaorma
 {
@@ -12,6 +13,22 @@ struct Shaorma
 	float pret;
 	int nrIngrediente;
 };
+
+struct Nod {
+	Shaorma info;
+	Nod* next;
+};
+
+void afisareShaorma(Shaorma shaorma) {
+	printf("\nShaorma de tipul %s costa %.2f lei si contine %d ingrediente", shaorma.tip, shaorma.pret, shaorma.nrIngrediente);
+}
+
+void afisareListaShaorma(Nod* cap) {
+	while (cap != NULL) {
+		afisareShaorma(cap->info);
+		cap = cap->next;
+	}
+}
 
 int* citire_vector(int* dimensiune, FILE* fisier)
 {
@@ -65,31 +82,51 @@ void citireVectorShaorma(FILE* file, Shaorma** vectorShaorma, int* nrShaorma) {
 	}
 }
 
+void inserareLaInceput(Nod** cap, Shaorma shaorma) {
+	Nod* nou = (Nod*)malloc(sizeof(Nod));
+	nou->info = shaorma;
+	nou->next = *cap;
+	*cap = nou;
+}
+
+void inserareLaSfarsit(Nod** cap, Shaorma shaorma) {
+	Nod* nou = (Nod*)malloc(sizeof(Nod));
+	nou->info = shaorma;
+	nou->next = NULL;
+
+	if ((*cap) == NULL) {
+		*cap = nou;
+	}
+	else {
+		Nod* aux = *cap;
+		while (aux->next != NULL) {
+			aux = aux->next;
+	}
+		aux->next = nou;
+	}
+}
+
+void dezalocare(Nod** cap) {
+	while ((*cap) != NULL) {
+		free((*cap)->info.tip);
+		Nod* copie = *cap;
+		*cap = (*cap)->next;
+		free(copie);
+	}
+}
+
+float calculPretMediuShaorma(Nod* cap) {
+	float suma = 0;
+	int contor = 0;
+	while (cap != NULL) {
+		suma += cap->info.pret;
+		contor++;
+		cap = cap->next;
+	}
+	return suma / contor;
+}
+
 void main() {
-	/*FILE* fisier = fopen("fisier.txt", "r");
-	int value1, value2;
-
-	if (fisier != NULL) {
-		fscanf(fisier, "%d", &value1);
-		fscanf(fisier, "%d", &value2);
-	}
-
-	fclose(fisier);
-
-	printf("\nValue1=%d, value2=%d", value1, value2);
-
-	FILE* f = fopen("file.txt", "r");
-	int dimensiune;
-	int* vector = NULL;
-	if (f != NULL)
-	{
-		vector = citire_vector(&dimensiune, f);
-	}
-
-	afisare_vector(vector, dimensiune);
-	free(vector);
-	fclose(f);*/
-
 	FILE* fileStream = fopen("Shaorma.txt", "r");
 	Shaorma shaorma = citireShaorma(fileStream);
 
@@ -103,11 +140,18 @@ void main() {
 	Shaorma* vectorShaorma = NULL;
 	int nrShaorma = 0;
 	citireVectorShaorma(fileStream, &vectorShaorma, &nrShaorma);
-	printf("\nAfisare vector:");
+	//printf("\nAfisare vector:");
+	Nod* cap = NULL;
 	for (int i = 0; i < nrShaorma; i++) {
-		printf("\nTipul ales este: %s.", vectorShaorma[i].tip);
-		free(vectorShaorma[i].tip);
+		//printf("\nTipul ales este: %s.", vectorShaorma[i].tip);
+		//free(vectorShaorma[i].tip);
+
+		inserareLaSfarsit(&cap, vectorShaorma[i]);
 	}
 
+	afisareListaShaorma(cap);
+	printf("\nPretul mediu pentru o shaorma este %.2f lei.", calculPretMediuShaorma(cap));
+	dezalocare(&cap);
+	free(vectorShaorma);
 	fclose(file);
 }

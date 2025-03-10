@@ -5,6 +5,7 @@
 #include<stdlib.h>
 
 typedef struct Carte Carte;
+typedef struct Nod Nod;
 
 struct Carte
 {
@@ -12,6 +13,16 @@ struct Carte
 	int nrPagini;
 	float pret;
 };
+
+struct Nod
+{
+	Carte info;
+	Nod* next;
+};
+
+void afisareCarte(Carte carte) {
+	printf("\nCartea scrisa de %s are %d pagini si costa %.2f lei.", carte.autor, carte.nrPagini, carte.pret);
+}
 
 void citire_vector_fisier(char* file_name, int* length, int** vector) {
 	FILE* fisier;
@@ -66,26 +77,60 @@ void citireVectorCarti(FILE* file, Carte** vectorCarti, int* nrCarti) {
 	}
 }
 
-void main() {
-	/*FILE* fisier;
-	int nrIntreg1, nrIntreg2;
-	fisier = fopen("FisierNumereIntregi.txt", "r");
-	if (fisier != NULL) {
-		fscanf(fisier, "%d", &nrIntreg1);
-		fscanf(fisier, "%d", &nrIntreg2);
+void inserareLaInceput(Nod** cap, Carte carte) {
+	Nod* nou = (Nod*)malloc(sizeof(Nod));
+	nou->info = carte;
+	nou->next = *cap;
+	*cap = nou;
+}
+
+void traversareLista(Nod* cap) {
+	while (cap) {
+		afisareCarte(cap->info);
+		cap = cap->next;
 	}
+}
 
-	fclose(fisier);
+void inserareLaSfarsit(Nod** cap, Carte carte) {
+	Nod* nou = (Nod*)malloc(sizeof(Nod));
+	nou->info = carte;
+	nou->next = NULL;
 
-	printf("\nNr1=%d, nr2=%d", nrIntreg1, nrIntreg2);
+	if ((*cap) == NULL) {
+		*cap = nou;
+	}
+	else {
+		Nod* temp = *cap;
+		while (temp->next != NULL) {
+			temp = temp->next;
+		}
+		temp->next = nou;
+	}
+}
 
-	int* vector;
-	int length;
-	printf("\n");
+void dezalocare(Nod** cap) {
+	while ((*cap)) {
+		free((*cap)->info.autor);
+		Nod* temp = *cap;
+		*cap = (*cap)->next;
+		free(temp);
+}
+}
 
-	citire_vector_fisier("fisier_vector.txt", &length, &vector);
-	afisare_vector_fisier(length, vector);*/
+int nrCartiByAutor(Nod* cap, char* autor){
+	int cont = 0;
+	while (cap) {
 
+		if (strcmp(cap->info.autor, autor) == 0) {
+			cont++;
+		}
+
+		cap = cap->next;
+	}
+	return cont;
+}
+
+void main() {
 	FILE* fileStream = fopen("Carte.txt", "r");
 	Carte carte = citireCarte(fileStream);
 
@@ -99,11 +144,21 @@ void main() {
 	Carte* vectorCarti = NULL;
 	int nrCarti = 0;
 	citireVectorCarti(fileStream, &vectorCarti, &nrCarti);
-	printf("\nAfisare vector:");
-	for (int i = 0; i < nrCarti; i++) {
-		printf("\nAutorul este: %s.", vectorCarti[i].autor);
-		free(vectorCarti[i].autor);
-	}
+	//printf("\nAfisare vector:");
 
+	Nod* cap = NULL;
+	for (int i = 0; i < nrCarti; i++) {
+		//printf("\nAutorul este: %s.", vectorCarti[i].autor);
+		//afisareCarte(vectorCarti[i]);
+		//free(vectorCarti[i].autor);
+		//inserareLaInceput(&cap, vectorCarti[i]);
+		inserareLaSfarsit(&cap, vectorCarti[i]);
+	}
+	traversareLista(cap);
+	printf("\nNumarul de carti scrise de Nichita Stanescu este: %d", nrCartiByAutor(cap, "Nichita Stanescu"));
+
+	dezalocare(&cap);
+	
+	free(vectorCarti);
 	fclose(file);
 }
