@@ -141,6 +141,57 @@ NodPrincipal* cautareNodDupaId(NodPrincipal* graf, int id) {
 	return graf;
 }
 
+void adaugaMuchie(NodPrincipal* graf, int id1, int id2) {
+	NodPrincipal* nod1 = cautareNodDupaId(graf, id1);
+	NodPrincipal* nod2 = cautareNodDupaId(graf, id2);
+	if (nod1 != NULL && nod2 != NULL) {
+		inserareListaSecundara(&nod1->vecini, nod2);
+		inserareListaSecundara(&nod2->vecini, nod1);
+	}
+}
+
+void afisareGraf(NodPrincipal* graf) {
+	while (graf != NULL) {
+		afisareExamen(graf->info);
+		NodSecundar* vecini = graf->vecini;
+		printf("\n Vecini:");
+		while (vecini) {
+			afisareExamen(vecini->info->info);
+			vecini = vecini->next;
+		}
+		printf("\n");
+		graf = graf->next;
+	}
+}
+
+void parcurgereInAdancime(NodPrincipal* graf, int idStart) {
+	int dimensiune = 6;
+	int* vectorVizitate = (int*)malloc(dimensiune * sizeof(int));
+	for (int i = 0; i < dimensiune; i++) {
+		vectorVizitate[i] = 0;
+	}
+
+	ListaDubla stiva;
+	stiva.first = stiva.last = NULL;
+	push(&stiva, idStart);
+	vectorVizitate[idStart-1] = 1;
+	while (stiva.first) {
+		int idExtras = pop(&stiva);
+		NodPrincipal* nodExtras = cautareNodDupaId(graf, idExtras);
+		afisareExamen(nodExtras->info);
+		NodSecundar* vecini = nodExtras->vecini;
+		while (vecini) {
+			if (vectorVizitate[vecini->info->info.id - 1] == 0) {
+				push(&stiva, vecini->info->info.id);
+				vectorVizitate[vecini->info->info.id - 1] = 1;
+			}
+			vecini = vecini->next;
+		}
+	}
+
+	free(vectorVizitate);
+}
+
 void main() {
 	NodPrincipal* graf = NULL;
 	inserareListaPrincipala(&graf, initExamen(1, "SDD", 5));
@@ -149,5 +200,16 @@ void main() {
 	inserareListaPrincipala(&graf, initExamen(4, "JAVA", 5));
 	inserareListaPrincipala(&graf, initExamen(5, "MACRO", 5));
 	inserareListaPrincipala(&graf, initExamen(6, "SGBD", 5));
-	
+
+	adaugaMuchie(graf, 1, 2);
+	adaugaMuchie(graf, 1, 3);
+	adaugaMuchie(graf, 2, 4);
+	adaugaMuchie(graf, 3, 5);
+	adaugaMuchie(graf, 4, 6);
+	adaugaMuchie(graf, 5, 6);
+
+	afisareGraf(graf);
+
+	printf("\n Parcurgere in adancime:");
+	parcurgereInAdancime(graf, 1);
 }
